@@ -71,8 +71,8 @@ log(RT) ~ length + freq + prev_length + prev_freq + WMC + WMC:length + WMC:freq
 - Comparing models: each model is tested against the previous one with a likelihood-ratio test, which asks whether
   the added terms make the model fit the data clearly better.
 - Individual effects: each effect gets a p-value (how likely an effect at least this large would be if there were no
-  real effect), computed with `lmerTest` (Satterthwaite method), and a 95% confidence interval (the range of values
-  compatible with the data).
+  real effect) and a 95% confidence interval (the range of values compatible with the data). Both use the same
+  t-test from `lmerTest` (Satterthwaite method), so the interval excludes 0 exactly when p < .05.
 - Variance explained: R², the share of the variation in reading times that a model accounts for. Marginal R² counts only the effects in the table above (word
   properties and WMC); conditional R² also counts the random effects, i.e. the differences between participants and
   between words.
@@ -88,7 +88,7 @@ Click a file name to expand its description.
 <details>
 <summary><code>summary.md</code></summary>
 
-Three results per reading measure, each marked "reliable" when its 95% confidence interval does not include 0:
+Three results per reading measure, each marked "reliable" when p < .05 (its 95% confidence interval does not include 0):
 
 - Overall WMC effect: the `wmc_z` effect in M1, converted to "per 0.1 WMC score" (see [Statistics](#statistics)). M1 is used because in
   M2 the `wmc_z` effect only applies to a word of average length and frequency.

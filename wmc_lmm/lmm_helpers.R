@@ -93,9 +93,16 @@ interaction_name <- function(term, estimates) {
   if (length(found) == 0) NA_character_ else found[[1]]
 }
 
+# 95% confidence interval from the t distribution with the same (Satterthwaite)
+# degrees of freedom as the p-value, so the interval excludes 0 exactly when p < .05.
+confidence_interval <- function(coefs) {
+  half_width <- qt(0.975, coefs[, "df"]) * coefs[, "Std. Error"]
+  cbind(low = coefs[, "Estimate"] - half_width, high = coefs[, "Estimate"] + half_width)
+}
+
 coefficient_table <- function(model, dv, model_name) {
   coefs <- summary(model)$coefficients
-  ci <- confint(model, method = "Wald", parm = "beta_")
+  ci <- confidence_interval(coefs)
   terms <- rownames(coefs)
   # The intercept is a baseline reading time, not an effect, so it has no percent change.
   as_percent <- function(values) ifelse(terms == "(Intercept)", NA_real_, percent(values))
@@ -117,11 +124,11 @@ coefficient_table <- function(model, dv, model_name) {
 
 DV_LABELS <- c(TFT = "Total fixation time (TFT)", FPRT = "First-pass reading time (FPRT)")
 
-# Estimate, 95% Wald confidence interval and p-value of one term (log scale).
+# Estimate, 95% confidence interval and p-value of one term (log scale).
 term_stats <- function(model, term) {
-  coefs <- summary(model)$coefficients
-  ci <- confint(model, method = "Wald", parm = term)
-  list(estimate = coefs[term, "Estimate"], low = ci[1, 1], high = ci[1, 2], p = coefs[term, "Pr(>|t|)"])
+  coefs <- summary(model)$coefficients[term, , drop = FALSE]
+  ci <- confidence_interval(coefs)
+  list(estimate = coefs[1, "Estimate"], low = ci[1, "low"], high = ci[1, "high"], p = coefs[1, "Pr(>|t|)"])
 }
 
 is_reliable <- function(stats) stats$low > 0 || stats$high < 0
@@ -207,7 +214,7 @@ summary_header <- function(scales) {
       "WMC score (`%s`): mean %.2f, SD %.2f. \"Low WMC\" and \"high WMC\" below are 1 SD below and above the mean.",
       wmc_column, scale_value(scales, "wmc", "mean"), scale_value(scales, "wmc", "sd")
     ),
-    "\"Reliable\" means the 95% confidence interval (CI) does not include 0.",
+    "\"Reliable\" means p < .05, i.e. the 95% confidence interval (CI) does not include 0.",
     "Full numbers: coefficients.csv, model_comparison.csv, variance_explained.csv. How to read them: METHOD.md.", ""
   )
 }
@@ -234,9 +241,11 @@ plot_wmc_difference <- function(model, dv, scales, out_path) {
   x[, interaction_name("freq_z", b)] <- 2 * freq_z
   diff_log <- drop(x %*% b)
   se <- sqrt(rowSums((x %*% v) * x))
+  # Same t distribution as the WMC effect's p-value (WMC varies only between participants).
+  t_crit <- qt(0.975, summary(model)$coefficients["wmc_z", "df"])
   fit <- percent(diff_log)
-  low <- percent(diff_log - 1.96 * se)
-  high <- percent(diff_log + 1.96 * se)
+  low <- percent(diff_log - t_crit * se)
+  high <- percent(diff_log + t_crit * se)
 
   freq_mean <- scale_value(scales, "freq", "mean")
   freq_sd <- scale_value(scales, "freq", "sd")
