@@ -1,0 +1,39 @@
+# Copy this file (e.g. to config.yaml), fill in your paths, then run:
+#   uv run python -m wmc_lmm.run --config config.yaml
+# Relative paths are relative to the folder this config file is in.
+
+# Two-letter language code of the texts, used for word frequencies (e.g. de, en, ro).
+language: en
+
+# Where the results are written. Optional: by default, a "results" folder next to this config file.
+# output_folder: results/
+
+# --- Reading measures: set exactly ONE of the two options below ---
+
+# Option 1: the reading_measures folder written by the MultiplEYE preprocessing pipeline
+# (one subfolder per session, one CSV per text). Practice texts are skipped automatically.
+reading_measures_folder: path/to/preprocessed_data/<data_collection>/reading_measures/
+
+# Option 2: a single CSV with all reading measures already merged. It needs a column with the
+# session id and one with the text name (names below), plus: page, word_idx, word, skipped, FPF, TFT, FPRT.
+# Remove practice texts from it beforehand.
+# reading_measures_file: path/to/reading_measures.csv
+# session_column: participant_id
+# text_column: text_name
+
+# --- Psychometric scores ---
+
+# The psychometric overview CSV (e.g. psychometric_overview_<data_collection>_merged.csv).
+# Needs a participant_id column and the WMC score column below.
+psychometric_overview: path/to/psychometric_overview.csv
+wmc_column: LWMC_Total_score_mean
+
+# --- Optional ---
+
+# How to get the participant id from a session id: a regular expression whose first group is
+# the participant id. Default: the digits before the first underscore ("014_RO_RO_1_ET1" -> 14).
+# participant_id_pattern: '^(\d+)_'
+
+# Your own word-frequency list, for languages wordfreq doesn't cover: a CSV with columns
+# "word" and "zipf" (Zipf = log10 of the word's frequency per billion words).
+# word_frequency_file: path/to/frequencies.csv

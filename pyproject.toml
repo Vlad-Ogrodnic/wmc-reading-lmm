@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wmc-reading-lmm"
+version = "0.1.0"
+description = "Does working memory capacity predict word reading times? Mixed-effects models on MultiplEYE eye-tracking data."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.24",
+    "pandas>=2.0",
+    "pyyaml>=6.0",
+    "wordfreq>=3.1",
+]
+
+[dependency-groups]
+dev = ["pytest>=7.0"]
+
+[tool.setuptools]
+packages = ["wmc_lmm"]
+
+[tool.setuptools.package-data]
+wmc_lmm = ["*.R"]

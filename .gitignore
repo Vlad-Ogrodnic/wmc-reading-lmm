@@ -1,0 +1,23 @@
+# Never commit data or results. Only the synthetic example data in example/ is tracked.
+data/
+results/
+example/results/
+*.rds
+
+# Your own config with real paths (config.example.yaml is the template).
+config.yaml
+!example/config.yaml
+
+# Tests are kept locally only (for checking changes), not published.
+tests/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+.pytest_cache/
+
+# R
+.Rhistory
+.RData

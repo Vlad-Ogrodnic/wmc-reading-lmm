@@ -1,0 +1,6 @@
+# Config for the synthetic example data in this folder.
+# From the repository root:  uv run python -m wmc_lmm.run --config example/config.yaml
+language: en
+reading_measures_folder: reading_measures/
+psychometric_overview: psychometric_overview.csv
+wmc_column: LWMC_Total_score_mean
