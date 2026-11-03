@@ -5,7 +5,7 @@ Does working memory capacity (WMC) predict how long people spend reading each wo
 This repository takes word-level eye-tracking data and working memory scores from the
 [MultiplEYE](https://github.com/MultiplEYE-COST) project and fits linear mixed-effects models that answer two questions:
 
-1. Do readers with higher WMC read faster overall, once word length, word frequency and each reader's own speed are accounted for?
+1. Do readers with higher WMC read faster overall, once word length and frequency are accounted for?
 2. Does the WMC advantage grow for harder (rarer or longer) words?
 
 Two reading measures are analysed separately: total fixation time (TFT, all time spent on a word, including re-reading)
@@ -39,6 +39,8 @@ cd wmc-reading-lmm
 uv sync                           # Python packages (or: pip install -e .)
 Rscript install_r_packages.R      # R packages, once
 ```
+
+If you use pip instead of uv, run the commands below without `uv run`.
 
 `install_r_packages.R` installs into your personal R library, so it also works when R's own library folder isn't writable
 (the default on Windows).
@@ -105,8 +107,8 @@ Two options:
 
 ## Results
 
-Everything is written to `output_folder`. Start with `summary.md`: the main results in a few sentences, each
-marked as reliable or not.
+Everything is written to `output_folder`. Start with `summary.md`: the main results in a few sentences, with each
+effect marked as reliable or not.
 
 The other files hold the full details, explained in [METHOD.md](METHOD.md#outputs):
 

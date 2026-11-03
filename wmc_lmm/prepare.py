@@ -142,6 +142,13 @@ def prepare(config: Config) -> Prepared:
     # person (not per row, which would weight people by how much they read).
     wmc = read_wmc(config)
     wmc = wmc[wmc.index.isin(df["participant_id"].unique())]
+    if wmc.empty:
+        raise ValueError(
+            f"No participant in the reading measures has a WMC score in {config.psychometric_overview}. "
+            f"Participant ids from the reading measures look like {sorted(df['participant_id'].unique())[:3]}, "
+            f"ids with a score in the psychometric overview like {sorted(read_wmc(config).index)[:3]}. "
+            "If they differ, adjust 'participant_id_pattern' in the config."
+        )
     df = df.join(zscore(wmc).rename("wmc_z"), on="participant_id", how="inner")
     log_step("participant has a WMC score", df)
 

@@ -57,7 +57,8 @@ many times:
 Sometimes a model cannot be estimated with all of these (the estimation fails or one of them comes out as zero). In
 that case the random effects are simplified step by step: first without the correlations between them, then keeping
 only the participant's sensitivity to frequency, then keeping only the baselines. The first version that works for M2
-is used for all three models, so that they stay comparable. `model_comparison.csv` shows which version was used.
+is used for all three models, so that they stay comparable. If none works, the simplest one is used anyway.
+`model_comparison.csv` shows which version was used, and any problems in its `warnings` column.
 
 For reference, in `lme4` notation the full model is:
 
@@ -88,7 +89,8 @@ Click a file name to expand its description.
 <details>
 <summary><code>summary.md</code></summary>
 
-Three results per reading measure, each marked "reliable" when p < .05 (its 95% confidence interval does not include 0):
+Three results per reading measure. The effects are marked "reliable" when p < .05 (their 95% confidence interval does
+not include 0):
 
 - Overall WMC effect: the `wmc_z` effect in M1, converted to "per 0.1 WMC score" (see [Statistics](#statistics)). M1 is used because in
   M2 the `wmc_z` effect only applies to a word of average length and frequency.
@@ -170,7 +172,7 @@ actual reading times behind the difference above.
 - The results are correlational: vocabulary, reading experience and education are not controlled for.
 - WMC varies only between participants, so the number of participants limits how precisely its effect can be estimated.
 - wordfreq's smaller lists only contain words occurring more than about once per million; rarer words all get the
-  same value (`predictor_scales.csv` reports how many words this affects).
+  same value (`predictor_scales.csv` reports what share of the words this affects).
 - A rare word repeated within a text becomes familiar, but the model doesn't account for repetition.
 - Length and frequency reflect word recognition, not working memory load.
 - Words at the start and end of a line are not excluded, because the reading measures don't mark where lines start.
