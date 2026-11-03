@@ -116,6 +116,7 @@ The other files hold the full details, explained in [METHOD.md](METHOD.md#output
 | `model_comparison.csv` | Whether WMC matters at all. Tests whether adding WMC to a model that only knows the words makes it fit the data better, and then whether letting the WMC effect depend on word difficulty helps further. |
 | `variance_explained.csv` | How much WMC matters. What share of the differences in reading times each model explains. |
 | `wmc_difference_by_frequency_TFT.png`, `..._FPRT.png` | Where WMC matters. How much faster high-WMC readers are than low-WMC readers, from rare to frequent words. |
+| `reading_time_by_frequency_TFT.png`, `..._FPRT.png` | The same, as predicted reading times (ms) for low- and high-WMC readers. |
 | `exclusions.csv` | How many words and participants are left after each exclusion step (the numbers to report). |
 | `word_table.csv`, `predictor_scales.csv`, `fitted_models/` | Intermediate files: the table the models are fitted on, what 1 SD of each predictor is in real units, and the saved models. |
 

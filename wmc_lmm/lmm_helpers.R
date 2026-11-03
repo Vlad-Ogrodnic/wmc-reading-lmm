@@ -228,40 +228,86 @@ r_squared <- function(model) {
   c(marginal = unname(r2$R2_marginal), conditional = unname(r2$R2_conditional))
 }
 
-# Reading-time difference between high (+1 SD) and low (-1 SD) WMC readers,
-# in percent, as a function of word frequency, with a 95% confidence band of
-# the difference. Where the band lies entirely below 0, high-WMC readers are
-# reliably faster. Other predictors are held at their mean.
-plot_wmc_difference <- function(model, dv, scales, out_path) {
-  b <- fixef(model)
-  v <- as.matrix(vcov(model))
-  freq_z <- seq(-2, 2, length.out = 100)
-  x <- matrix(0, nrow = length(freq_z), ncol = length(b), dimnames = list(NULL, names(b)))
-  x[, "wmc_z"] <- 2
-  x[, interaction_name("freq_z", b)] <- 2 * freq_z
-  diff_log <- drop(x %*% b)
-  se <- sqrt(rowSums((x %*% v) * x))
-  # Same t distribution as the WMC effect's p-value (WMC varies only between participants).
-  t_crit <- qt(0.975, summary(model)$coefficients["wmc_z", "df"])
-  fit <- percent(diff_log)
-  low <- percent(diff_log - t_crit * se)
-  high <- percent(diff_log + t_crit * se)
+# ---- Plots (model M2, word frequency from 2 SD below to 2 SD above the mean,
+# other predictors at their mean) ----
 
+PLOT_FREQ_Z <- seq(-2, 2, length.out = 100)
+
+# Word frequency on the Zipf scale if its scale is known, else as z-scores.
+frequency_axis <- function(scales) {
   freq_mean <- scale_value(scales, "freq", "mean")
   freq_sd <- scale_value(scales, "freq", "sd")
-  has_scale <- !is.na(freq_mean) && !is.na(freq_sd)
-  xs <- if (has_scale) freq_mean + freq_z * freq_sd else freq_z
-  x_label <- if (has_scale) "word frequency (Zipf; higher = more frequent)" else "word frequency (z-score)"
+  if (is.na(freq_mean) || is.na(freq_sd)) return(list(x = PLOT_FREQ_Z, label = "word frequency (z-score)"))
+  list(x = freq_mean + PLOT_FREQ_Z * freq_sd, label = "word frequency (Zipf; higher = more frequent)")
+}
+
+# Log-scale value of a combination of the model's effects (one row of `x` per
+# point), with its 95% confidence band. The band uses the same t distribution
+# as the WMC effect's p-value (WMC varies only between participants).
+with_band <- function(model, x) {
+  fit <- drop(x %*% fixef(model))
+  se <- sqrt(rowSums((x %*% as.matrix(vcov(model))) * x))
+  t_crit <- qt(0.975, summary(model)$coefficients["wmc_z", "df"])
+  list(fit = fit, low = fit - t_crit * se, high = fit + t_crit * se)
+}
+
+effect_matrix <- function(model) {
+  b <- fixef(model)
+  matrix(0, nrow = length(PLOT_FREQ_Z), ncol = length(b), dimnames = list(NULL, names(b)))
+}
+
+# Reading-time difference between high (+1 SD) and low (-1 SD) WMC readers,
+# in percent, with a 95% confidence band of the difference. Where the band lies
+# entirely below 0, high-WMC readers are reliably faster.
+plot_wmc_difference <- function(model, dv, scales, out_path) {
+  x <- effect_matrix(model)
+  x[, "wmc_z"] <- 2
+  x[, interaction_name("freq_z", fixef(model))] <- 2 * PLOT_FREQ_Z
+  diff <- lapply(with_band(model, x), percent)
+  axis <- frequency_axis(scales)
 
   png(out_path, width = 1500, height = 1100, res = 200)
-  plot(xs, fit, type = "n", ylim = range(c(low, high, 0)),
-       xlab = x_label, ylab = "reading time difference (%)",
+  plot(axis$x, diff$fit, type = "n", ylim = range(c(diff$low, diff$high, 0)),
+       xlab = axis$label, ylab = "reading time difference (%)",
        main = sprintf("%s: high vs low WMC readers (%s vs %s)", dv,
                       wmc_level_label(1, scales), wmc_level_label(-1, scales)))
-  polygon(c(xs, rev(xs)), c(low, rev(high)), col = adjustcolor("#0072B2", alpha.f = 0.2), border = NA)
+  polygon(c(axis$x, rev(axis$x)), c(diff$low, rev(diff$high)), col = adjustcolor("#0072B2", alpha.f = 0.2), border = NA)
   abline(h = 0, lty = 2, col = "grey40")
-  lines(xs, fit, lwd = 2, col = "#0072B2")
+  lines(axis$x, diff$fit, lwd = 2, col = "#0072B2")
   mtext("model M2; below 0 = high-WMC readers faster; shaded: 95% confidence band of the difference",
+        side = 3, line = 0.3, cex = 0.65)
+  dev.off()
+}
+
+# Predicted reading time (ms) for low (-1 SD) and high (+1 SD) WMC readers,
+# each with its own 95% confidence band.
+plot_reading_time <- function(model, dv, scales, out_path) {
+  predict_at <- function(wmc) {
+    x <- effect_matrix(model)
+    x[, "(Intercept)"] <- 1
+    x[, "freq_z"] <- PLOT_FREQ_Z
+    x[, "wmc_z"] <- wmc
+    x[, interaction_name("freq_z", fixef(model))] <- wmc * PLOT_FREQ_Z
+    lapply(with_band(model, x), exp)
+  }
+  readers <- list(low = predict_at(-1), high = predict_at(1))
+  colors <- c(low = "#D55E00", high = "#0072B2")
+  axis <- frequency_axis(scales)
+
+  png(out_path, width = 1500, height = 1100, res = 200)
+  plot(axis$x, readers$low$fit, type = "n",
+       ylim = range(unlist(lapply(readers, function(r) c(r$low, r$high)))),
+       xlab = axis$label, ylab = paste0("predicted ", dv, " (ms)"),
+       main = paste0(dv, ": reading time by word frequency, low vs high WMC"))
+  for (level in names(readers)) {
+    r <- readers[[level]]
+    polygon(c(axis$x, rev(axis$x)), c(r$low, rev(r$high)), col = adjustcolor(colors[[level]], alpha.f = 0.2), border = NA)
+    lines(axis$x, r$fit, lwd = 2, col = colors[[level]])
+  }
+  legend("topright", legend = c(sprintf("low WMC (%s)", wmc_level_label(-1, scales)),
+                                sprintf("high WMC (%s)", wmc_level_label(1, scales))),
+         col = colors, lwd = 2, bty = "n")
+  mtext("model M2; shaded: 95% confidence bands (overlapping bands do not mean there is no difference)",
         side = 3, line = 0.3, cex = 0.65)
   dev.off()
 }

@@ -148,6 +148,15 @@ estimates. Where it lies entirely below 0, high-WMC readers are reliably faster 
 
 </details>
 
+<details>
+<summary><code>reading_time_by_frequency_*.png</code></summary>
+
+The same M2 estimates shown as predicted reading times (ms): one line for a reader 1 SD below and one for a reader
+1 SD above the mean WMC, each with its own 95% confidence band, over the same range of word frequencies. It shows the
+actual reading times behind the difference above.
+
+</details>
+
 ## Language notes
 
 - Length counts letters in any script; for scripts like Chinese this means characters.

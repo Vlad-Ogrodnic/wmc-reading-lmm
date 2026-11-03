@@ -79,9 +79,12 @@ for (dv in DEPENDENT_VARIABLES) {
     fits, dv, uniqueN(dv_data$participant_id), nrow(dv_data), variance[[dv]], scales
   ))
 
-  plot_path <- file.path(out_dir, paste0("wmc_difference_by_frequency_", dv, ".png"))
-  plot_wmc_difference(fits$M2$model, dv, scales, plot_path)
-  log_progress("wrote", plot_path)
+  plots <- list(wmc_difference_by_frequency = plot_wmc_difference, reading_time_by_frequency = plot_reading_time)
+  for (name in names(plots)) {
+    plot_path <- file.path(out_dir, paste0(name, "_", dv, ".png"))
+    plots[[name]](fits$M2$model, dv, scales, plot_path)
+    log_progress("wrote", plot_path)
+  }
 }
 
 outputs <- list(
